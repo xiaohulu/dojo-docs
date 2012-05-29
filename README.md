@@ -1,4 +1,4 @@
 dojo-docs
 =========
 
-dojo学习文档
+dojo文档翻译
