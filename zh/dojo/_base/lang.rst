@@ -17,6 +17,7 @@ clone()
 Clones `anything` objects and/or nodes, returning a new `anything`.
 克隆 `任何` 对象或者节点，返回一个新的实例。
 
+
 Simply pass _something_ to clone(), and a new version of that _something_ will be made.
 
 .. js ::
