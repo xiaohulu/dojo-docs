@@ -12,13 +12,14 @@ dojo/_base/lang
 **dojo/_base/lang** contains functions for supporting Polymorphism.支持多态性。
 
 
-clone()
+clone(/*anything*/src)
 =======
 Clones `anything` objects and/or nodes, returning a new `anything`.
-克隆 `任何` 对象或者节点，返回一个新的实例。
+克隆。克隆任何对象或者节点，返回一个一模一样的新实例。
 
 
 Simply pass _something_ to clone(), and a new version of that _something_ will be made.
+往clone()方法中传入任何对象或节点，将相应的返回一个新版本的对象或节点
 
 .. js ::
  
@@ -32,6 +33,7 @@ Simply pass _something_ to clone(), and a new version of that _something_ will b
   });
 
 Often times, you want to clone a DOM Node. The easiest way to locate a DOM Node is :ref:`byId <dom.byId>`, though consideration to change the id after cloning is required (id's are unique, and should be used as such)
+通常，需要克隆一个DOM节点。定义DOM节点最快捷的方式是使用方法 :ref:`byId <dom.byId>`，但是在克隆之后必须修改DOM的id属性（id必须要唯一，并且理应改变id属性）
 
 .. js ::
   
@@ -42,6 +44,7 @@ Often times, you want to clone a DOM Node. The easiest way to locate a DOM Node 
   });
 
 If you have a pointer to some node already, or want to avoid id's all together, :ref:`query() <query()>` may be useful:
+如果已经有了指向某个节点的变量，或者不想使用id属性，则可以使用 :ref:`query() <query()>`:
 
 .. js ::
   
@@ -57,21 +60,27 @@ If you have a pointer to some node already, or want to avoid id's all together, 
   });
 
 clone() is always "deep". Cyclic (e.g., circular or DAG) cases are explicitly not supported due to speed and space concerns.
+clone()方法使用深拷贝。出于性能和空间使用率，该方法不支持循环引用的情况。
 
-    * If you want a shallow copy of an object y = lang.mixin({}, x);
+    * If you want a shallow copy of an object: y = lang.mixin({}, x);
+    * 如果需要浅拷贝一个对象，请使用：y = lang.mixin({}, x);
     * If you want a shallow copy of an array: y = arrayUtil.map(x, "return value;");
+    * 如果需要浅拷贝一个数组，请使用：y = arrayUtil.map(x, "return value;");
     * The rest will be covered by the deep copy: y = lang.clone(x);
+    * 剩下的情况都可以使用深拷贝：y = lang.clone(x);
 
 TODOC: clone + events?
 
 
-delegate()
+delegate(oldObject, /*可选*/props)
 ==========
 Returns a new object which "looks" to obj for properties which it does not have a value for. Optionally takes a bag of properties to seed the returned object with initially.
+委托。返回一个监视另一个对象（旧对象）属性的新对象，注意，这个新对象本身并不包含旧对象的这些属性。即当访问一个新对象中并不存在的属性时，该新对象将委托旧对象返回指定属性的值；但是如果已经存在，则返回新对象中的值。可以传入一组属性作为新对象的初始属性。
+注意（这里的属性包含方法）。
 
 
 This is a small implementation of the Boodman/Crockford delegation pattern in JavaScript. An intermediate object constructor mediates the prototype chain for the returned object, using it to delegate down to obj for property lookup when object-local lookup fails. This can be thought of similarly to ES4's "wrap", save that it does not act on types but rather on pure objects.
-
+这是用Javascript对Boodman/Crockford委托模式的轻量级实现。一个中间对象为返回的对象构建一个中间属性链，当在本地对象中定位指定的属性失败时，将从委托的对象中查找属性。该机制与ES4中的“wrap”颇为相似，除了它不是应用在类型上，而是应用在javascript对象中。
 
 .. js ::
  
@@ -95,12 +104,14 @@ Examples
    });
 
 
-exists()
+exists(name, obj)
 ========
 Check if all objects in a dot-separated string object path exist, such as ``"A.B.C"``.
+校验通过点(.)分割的字符串指定的路径在对象中是否存在值，路径格式如 ``"A.B.C"``。
 
 
 ``exists()`` is a convenience function, particularly useful for testing long object paths. It accepts a string as its first parameter, and walks down the path it represents. You can optionally provide a root for the path as a second parameter, otherwise it will use a default value of the global object. Each portion of the '.' delimited string is tested for defined-ness, returning true only if each object exists as defined in the strong.
+``exists()`` 是一个便于使用的函数，在测试长路径对象时尤其有用。它接受一个字符串作为它的第一个参数，然后按照它指定路径开始追溯。第二个参数是可选的，它为前面指定的路径提供一个根，否则它将使用全局变量中的默认值。校验点(.)分割的每一个字符串描述的属性是否在当前上下文中已定义， 仅当每一级对象都已经定义，才返回true。
 
 .. js ::
  
@@ -112,6 +123,7 @@ Check if all objects in a dot-separated string object path exist, such as ``"A.B
 
 
 The second ``root`` parameter is optional, ``exists()`` will use the value of ``dojo/kernel::global`` by default (which is usually the current ``window``). You can use it to root the path in a different window object, or a particular namespace:
+第二个参数是可选的， ``exists()`` 默认使用 ``dojo/kernel::global`` 作为查询的根（该值经常等于当前的 ``window`` 对象）。可以通过该参数传入非当前window的另一个window对象，或者一个指定的命名空间：
 
 .. js ::
  
@@ -131,8 +143,10 @@ The second ``root`` parameter is optional, ``exists()`` will use the value of ``
 extend()
 ========
 extend() works much like `mixin()`, though works directly on an object's prototype. Following the same pattern as mixin, extend() mixes members from the right-most object into the first object, modifying the object directly.
+extend()的工作机制与`mixin()`方法很相似，它直接作用在一个对象的prototype（原型）上。参数格式遵循与mixin相同的模式，extend()方法将第一个参数右边的所有的参数都混入到第一个参数中，并直接修改第一个参数中传入的对象。
 
 We can use extend() to extend functionality into existing classes. Consider the following:
+我们可以使用extend()来扩展已存在类的功能。参考以下示例：
 
 .. js ::
   
@@ -143,12 +157,14 @@ We can use extend() to extend functionality into existing classes. Consider the 
   });
 
 The way the :ref:`dojo/parser <dojo/parser>` works, a custom attribute on the node will be recognized, as in the interest of performance, only declared members are mixed as part of the parsing process. Before the above extend() call, this sample would not recognize the follow markup:
+`dojo/parser <dojo/parser>` 这样处理以下情况， 在节点上自定义的属性将被识别，但是出于性能考虑，在解析过程中只有定义的成员会被“混入”。在调用extend()的上方，这个示例将不能识别下面的标记：
 
 .. html ::
     
      <div data-dojo-type="dijit/TitlePane" data-dojo-props="randomAttribute:'newValue'"></div>
 
 After the extend, any new instances of a TitlePane will have the 'randomAttribute' member mixed into the instance. extend() affects all future instances of a Class (or rather, any object with a .prototype).
+而在extend调用后，任何新的TitlePane实例将有一个'randomAttribute'成员被混入到实例中。extend()影响所有类的未来实例（更确切的说是任何含有.prototype属性的对象）。
 
 Extending _Widget
 -----------------
